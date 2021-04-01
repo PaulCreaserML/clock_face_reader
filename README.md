@@ -20,3 +20,9 @@ Currently only works for pretrained images
 ## Future
 
 Aim is to export an improved model and produce a demo for tenorflowjs ( Web page demo)
+
+## TensorFlow Js
+
+tensorflowjs_converter --input_format=tf_saved_model  "saved_model directory"  "destination directory"
+
+This should produce a json file and a binary file which are required by TensorflowJs
