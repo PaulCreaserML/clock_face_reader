@@ -15,79 +15,6 @@ import matplotlib.pyplot as plt
 
 img_width, img_height = 100, 100
 
-def load_and_process( filename, row, model, column_list ):
-    img = cv2.imread( filename)
-    img = cv2.resize( img, (img_height, img_width  ) )/255.0
-    tensor_image = np.expand_dims( img, axis=0 )
-    results = model.predict( tensor_image )
-    results = results[0]
-
-    lhs =  math.asin(  np.clip( ( row[column_list[0]])*1.001, -1, 1 ) ) * 180/math.pi
-    lhc =  math.acos(  np.clip( ( row[column_list[1]])*1.001, -1, 1 ) ) * 180/math.pi
-    lha =  math.atan2( np.clip( ( row[column_list[0]])*1.001, -1, 1 ), np.clip( ( row[column_list[1]] )*1.001, -1, 1 )  )* 180/math.pi
-
-    lms =  math.asin(  np.clip( ( row[column_list[2]])*1.001, -1, 1 ) ) * 180/math.pi
-    lmc =  math.acos(  np.clip( ( row[column_list[3]])*1.001, -1, 1 ) ) * 180/math.pi
-    lma =  math.atan2( np.clip( ( row[column_list[2]])*1.001, -1, 1 ), np.clip( ( row[column_list[3]] )*1.001, -1, 1 )  )* 180/math.pi
-
-    hs  =  math.asin(  np.clip( ( row[column_list[4]])*1.001, -1, 1 ) ) * 180/math.pi
-    hc  =  math.acos(  np.clip( ( row[column_list[5]])*1.001, -1, 1 ) ) * 180/math.pi
-    ha  =  math.atan2( np.clip( ( row[column_list[4]])*1.001, -1, 1 ), np.clip( ( row[column_list[5]] )*1.001, -1, 1 )  )* 180/math.pi
-
-
-    h = lha/30
-    h =  round(h)
-    if h < 0:
-        h= h + 12 #  24
-
-    m = lma/6
-    m =  round(m)
-    if m < 0:
-        m= m + 60
-
-    ch = ha
-    ch = ch/30
-    ch =  round(ch)
-    if ch < 0:
-        ch= ch + 12 # 24
-
-    print( filename )
-    print( "Label ", int(lhs), int(lhc), int(lms), int(lmc), h, ch, m )
-
-    # print("Label ", int(lhs), int(lhc), int(lha), int(lms), int(lmc), int(lma), int(hs), int(hc), int(ha) )
-
-    rhs =  math.asin(  np.clip( ( results[0])*1.001, -1, 1 ) ) * 180/math.pi
-    rhc =  math.acos(  np.clip( ( results[1])*1.001, -1, 1 ) ) * 180/math.pi
-    rha =  math.atan2( np.clip( ( results[0])*1.001, -1, 1 ), np.clip( ( results[1] )*1.001, -1, 1 )  )* 180/math.pi
-
-    rms =  math.asin(  np.clip( ( results[2])*1.001, -1, 1 ) ) * 180/math.pi
-    rmc =  math.acos(  np.clip( ( results[3])*1.001, -1, 1 ) ) * 180/math.pi
-    rma =  math.atan2( np.clip( ( results[2])*1.001, -1, 1 ), np.clip( ( results[3] )*1.001, -1, 1 )  )* 180/math.pi
-
-    ms  =  math.asin(  np.clip( ( results[4])*1.001, -1, 1 ) ) * 180/math.pi
-    mc  =  math.acos(  np.clip( ( results[5])*1.001, -1, 1 ) ) * 180/math.pi
-    ma  =  math.atan2( np.clip( ( results[4])*1.001, -1, 1 ), np.clip( ( results[5] )*1.001, -1, 1 )  )* 180/math.pi
-
-    m = ma/6
-    m =  round(m)
-    if m < 0:
-        m= m + 60
-
-    h = ha -ma/360
-    h = h/30
-    h =  round(h)
-    if h < 0:
-        h= h + 12 # 24
-
-    ch = ha
-    ch = ch/30
-    ch =  round(ch)
-    if ch < 0:
-        ch= ch + 12 # 24
-
-    print("Value", int(rhs), int(rhc), int(rms), int(rmc), h, ch, m )
-    # print("Value ", int(rhs), int(rhc), int(rha), int(rms), int(rmc), int(rma) , int(ms), int(mc), int(ma) )
-
 
 def to_grayscale_then_rgb(image):
     image = tensorflow.image.rgb_to_grayscale(image)
@@ -176,6 +103,9 @@ def clock_train( csv, epochs=200, batch_size=2, saved_model=None ):
     train_datagen = ImageDataGenerator(
         rescale = 1. / 255,
         horizontal_flip = False,
+        brightness_range=[0.2,1.0],
+        rotation_range=2,
+        zoom_range=[0.9,1.1],
         preprocessing_function=tensorflow.image.rgb_to_grayscale# to_grayscale_then_rgb
         )
 
@@ -212,11 +142,6 @@ def clock_train( csv, epochs=200, batch_size=2, saved_model=None ):
     # Save model
     if saved_model is not None:
         tensorflow.saved_model.save( model, saved_model)
-
-    # Final Check
-    for index, row in df.iterrows():
-        #print( "Row:-", index, row )
-        load_and_process( row['filename'] , row, model, column_list  )
 
 
 def main( argv ):
