@@ -103,9 +103,11 @@ def clock_train( csv, epochs=200, batch_size=2, saved_model=None ):
     train_datagen = ImageDataGenerator(
         rescale = 1. / 255,
         horizontal_flip = False,
-        brightness_range=[0.2,1.0],
+        brightness_range=[0.4,1.0],
         rotation_range=2,
         zoom_range=[0.9,1.1],
+        height_shift_range=[-4,4],
+        width_shift_range=[-4,4],
         preprocessing_function=tensorflow.image.rgb_to_grayscale# to_grayscale_then_rgb
         )
 
@@ -169,7 +171,7 @@ def main( argv ):
         exit(2)
 
     print(" Csv file ", csv, " Model ", model_file  )
-    clock_train( csv, epochs=100, batch_size=2, saved_model=model_file )
+    clock_train( csv, epochs=200, batch_size=2, saved_model=model_file )
 
 
 if __name__ == "__main__":
