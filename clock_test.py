@@ -13,11 +13,10 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-img_width, img_height = 144, 144
 
-def load_and_process( filename, row, model,  column_list ):
+def load_and_process( filename, input_shape, row, model,  column_list ):
     img = cv2.imread( filename)
-    img = cv2.resize( img, (img_height, img_width  ) )/255.0
+    img = cv2.resize( img, ( input_shape[0], input_shape[1]  ) )/255.0
     tensor_image = np.expand_dims( img, axis=0 )
     results = model.predict( tensor_image )
     results = results[0]
@@ -133,17 +132,20 @@ def model_test( csv, model_file ):
 
     print(column_list, type(column_list) )
 
-    # Model preparation
-    input_shape = ( img_height, img_width,  3)
-    input_img = Input( shape=input_shape )
 
     # Save model
     model = tensorflow.keras.models.load_model(model_file)
     model.summary()
 
+    # Model preparation
+    print( model.get_layer('input_1') )
+    print( model.get_layer('input_1').input_shape )
+    print( model.get_layer('input_1').input_shape[0] )
+    input_shape = model.get_layer('input_1').input_shape[0][1:]
+
     for index, row in df.iterrows():
         #print( "Row:-", index, row )
-        load_and_process( row['filename'] , row, model,  column_list )
+        load_and_process( row['filename'] , input_shape, row, model,  column_list )
 
 
 def main( argv ):
