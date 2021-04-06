@@ -132,19 +132,14 @@ def model_test( csv, model_file ):
 
     print(column_list, type(column_list) )
 
-
     # Save model
     model = tensorflow.keras.models.load_model(model_file)
     model.summary()
 
     # Model preparation
-    print( model.get_layer('input_1') )
-    print( model.get_layer('input_1').input_shape )
-    print( model.get_layer('input_1').input_shape[0] )
     input_shape = model.get_layer('input_1').input_shape[0][1:]
 
     for index, row in df.iterrows():
-        #print( "Row:-", index, row )
         load_and_process( row['filename'] , input_shape, row, model,  column_list )
 
 
