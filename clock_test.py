@@ -63,6 +63,13 @@ def load_and_process( filename, row, model,  column_list ):
     hc =  math.acos( np.clip( ( results[5])*1.001, -1, 1 ) ) * 180/math.pi
     cha =  math.atan2( np.clip( ( results[4])*1.001, -1, 1 ), np.clip( ( results[5])*1.001, -1, 1 )  )* 180/math.pi
 
+
+    if ma < 0:
+        ma = ma +360
+
+    if ha < 0:
+        ha = ha +360
+
     pm = ma/6
     pm =  round( pm + 0.5 )
     if pm < 0:
@@ -80,7 +87,8 @@ def load_and_process( filename, row, model,  column_list ):
         elif math.floor(phmv)%5<2:
             pm=0
     elif pm < 6:
-            phmv = phmv +3
+        if phmv > 3:
+            phmv = phmv + 3
     elif pm > 30:
         phmv = phmv - 1
 
@@ -89,15 +97,19 @@ def load_and_process( filename, row, model,  column_list ):
     if ph < 0:
         ph = ph + 12
 
-    if ph != lch:
-        print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " ", round(ha/6), " ", phmv, phmv%5, round(ha) )  #  , "     ", int(pch), ":", int(pm) , " <------")
-        print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " Diff ", (lch-int(ph)), ":", (lm-(int(pm) ) ) )  #  , "     ", int(pch), ":", int(pm) , " <------")
-
+    diff =  abs( (lch*60 + lm) - (ph*60+pm))%180
+    if (lch*60 + lm) != (ph*60+pm):
+        if diff > 10:
+            print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " Diff ", diff )
+            print(  phmv, ",", phm, ha/6, ma/6  )
+            pass
+        else:
+            print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " Diff ", diff )
     elif  abs(pm - lm)>1:
         print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " Diff ", (lch-int(ph)), ":", (lm-(int(pm) ) ) )  #  , "     ", int(pch), ":", int(pm) , " <------")
 
     else:
-        print( "Label:- ",  lch, ":",  lm  ) #  , "     ", int(pch), ":", int(pm) , " <------")
+        #print( "Label:- ",  lch, ":",  lm  ) #  , "     ", int(pch), ":", int(pm) , " <------")
         pass
 
 
