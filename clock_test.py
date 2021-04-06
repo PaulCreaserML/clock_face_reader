@@ -13,7 +13,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-img_width, img_height = 100, 100
+img_width, img_height = 144, 144
 
 def load_and_process( filename, row, model,  column_list ):
     img = cv2.imread( filename)
@@ -35,24 +35,21 @@ def load_and_process( filename, row, model,  column_list ):
     cha  =  math.atan2( np.clip( ( row[column_list[4]])*1.001, -1, 1 ), np.clip( ( row[column_list[5]])*1.001, -1, 1 )   )* 180/math.pi
 
 
-    h = lha/30
-    h =  round(h)
-    if h < 0:
-        h= h + 12
+    lh = lha/30
+    lh =  round(lh)
+    if lh < 0:
+        lh = lh + 12
 
-    m = lma/6
-    m =  round(m)
-    if m < 0:
-        m= m + 60
+    lm = lma/6
+    lm =  round(lm)
+    if lm < 0:
+        lm= lm + 60
 
-    ch = cha
-    ch = ch/30
-    ch =  round(ch)
-    if ch < 0:
-        ch= ch + 12
-
-    print( filename )
-    print( "Label", int(lhs), int(lhc), int(lms), int(lmc), h, ch, m )
+    lch = cha
+    lch = lch/30
+    lch =  round(lch)
+    if lch < 0:
+        lch= lch + 12
 
     rhs =  math.asin( np.clip( ( results[0])*1.001, -1, 1 ) ) * 180/math.pi
     rhc =  math.acos( np.clip( ( results[1])*1.001, -1, 1 ) ) * 180/math.pi
@@ -66,24 +63,42 @@ def load_and_process( filename, row, model,  column_list ):
     hc =  math.acos( np.clip( ( results[5])*1.001, -1, 1 ) ) * 180/math.pi
     cha =  math.atan2( np.clip( ( results[4])*1.001, -1, 1 ), np.clip( ( results[5])*1.001, -1, 1 )  )* 180/math.pi
 
-    m = ma/6
-    m =  round(m)
-    if m < 0:
-        m= m + 60
+    pm = ma/6
+    pm =  round( pm + 0.5 )
+    if pm < 0:
+        pm = pm + 60
+    pm = pm%60
 
-    h = ha -ma/360
-    h = h/30
-    h =  round(h)
-    if h < 0:
-        h= h + 12
+    # Edge case
+    ph   = ha # - ma/360
+    phm  = round( ph)/6
+    phmv = phm
 
-    ch = cha
-    ch = ch/30
-    ch =  round(ch)
-    if ch < 0:
-        ch= ch + 12
+    if pm > 54:
+        if math.floor(phmv)%5 > 4 and  phm <2:
+            pm = 0
+        elif math.floor(phmv)%5<2:
+            pm=0
+    elif pm < 6:
+            phmv = phmv +3
+    elif pm > 30:
+        phmv = phmv - 1
 
-    print("Value", int(rhs), int(rhc), int(rms), int(rmc), h, ch, m )
+    ph = math.floor(phmv/5)
+
+    if ph < 0:
+        ph = ph + 12
+
+    if ph != lch:
+        print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " ", round(ha/6), " ", phmv, phmv%5, round(ha) )  #  , "     ", int(pch), ":", int(pm) , " <------")
+        print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " Diff ", (lch-int(ph)), ":", (lm-(int(pm) ) ) )  #  , "     ", int(pch), ":", int(pm) , " <------")
+
+    elif  abs(pm - lm)>1:
+        print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " Diff ", (lch-int(ph)), ":", (lm-(int(pm) ) ) )  #  , "     ", int(pch), ":", int(pm) , " <------")
+
+    else:
+        print( "Label:- ",  lch, ":",  lm  ) #  , "     ", int(pch), ":", int(pm) , " <------")
+        pass
 
 
 def model_test( csv, model_file ):
