@@ -904,16 +904,19 @@ def model_build_col_red( img_height, img_width, depth=3 ):
 
     feature_1    = Conv2D(64, (3, 3), strides=(2, 2),  use_bias=False, activation='relu')( input_img )
     feature_1_scaled = MaxPooling2D( (2, 2) )( feature_1  )
+    feature_1_norm = BatchNormalization()(feature_1_scaled)
 
-    feature_2    = Conv2D(96, (3, 3), use_bias=False, activation='relu')( feature_1_scaled )
+    feature_2    = Conv2D(96, (3, 3), use_bias=False, activation='relu')( feature_1_norm )
     feature_2_scaled = MaxPooling2D( (2, 2) )( feature_2 )
+    feature_2_norm = BatchNormalization()(feature_2_scaled)
 
-    feature_3x3    = Conv2D(96, (3, 3), use_bias=False, activation='relu', padding='same')( feature_2_scaled )
-    feature_5x5    = Conv2D(12, (5, 5), use_bias=False, activation='relu', padding='same')( feature_2_scaled )
+    feature_3x3    = Conv2D(96, (3, 3), use_bias=False, activation='relu', padding='same')( feature_2_norm )
+    feature_5x5    = Conv2D(12, (5, 5), use_bias=False, activation='relu', padding='same')( feature_2_norm )
     skip1          = concatenate( [ feature_3x3, feature_5x5 ])
     skip1_scaled   = MaxPooling2D( (2, 2) )( skip1 )
+    skip1_norm     = BatchNormalization()(skip1_scaled)
 
-    feature1_3x3   = Conv2D(72, (3, 3), use_bias=False, activation='relu', padding='same')( skip1_scaled )
+    feature1_3x3   = Conv2D(72, (3, 3), use_bias=False, activation='relu', padding='same')( skip1_norm )
     #feature1_5x5   = Conv2D(64, (5,5), use_bias=False, activation='relu', padding='same')( skip1_scaled )
     skip2_scaled   = MaxPooling2D( (2, 2) )( feature1_3x3 )
 
@@ -966,12 +969,12 @@ def clock_train( csv, epochs=200, batch_size=2, saved_model=None, checkpoint_dir
     # Image preprocessing
     train_datagen = ImageDataGenerator(
         rescale = 1. / 255,
-        #horizontal_flip = False,
-        #brightness_range=[0.8,1.0],
-        #zoom_range=[0.95, 1.05],
+        horizontal_flip = False,
+        brightness_range=[0.8,1.2],
+        zoom_range=[0.95, 1.05],
         # shear_range=0.01,
-        #height_shift_range=[-10, 10],
-        #width_shift_range=[-10, 10]#,
+        height_shift_range=[-5, 5],
+        width_shift_range=[-5, 5]#,
         #preprocessing_function=train_preprocess) # tensorflow.image.rgb_to_grayscale# to_grayscale_then_rgb
         )
 
