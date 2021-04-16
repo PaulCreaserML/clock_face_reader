@@ -15,27 +15,24 @@ import matplotlib.pyplot as plt
 
 
 def load_and_process( filename, input_shape, row, model,  column_list ):
-    img = cv2.imread( filename)
-    img = cv2.resize( img, ( input_shape[0], input_shape[1]  ) )/255.0
-    tensor_image = np.expand_dims( img, axis=0 )
+    img  = cv2.imread( filename)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.resize( gray, ( input_shape[0], input_shape[1]  ) )/255.0
+    tensor_image = np.expand_dims( gray, axis=0 )
     results = model.predict( tensor_image )
     results = results[0]
 
-    lhs =  math.asin( np.clip( ( row[column_list[0]])*1.001, -1, 1 ) ) * 180/math.pi
-    lhc =  math.acos( np.clip( ( row[column_list[1]])*1.001, -1, 1 ) ) * 180/math.pi
-    lha  =  math.atan2( np.clip( ( row[column_list[0]])*1.001, -1, 1 ), np.clip( ( row[column_list[1]])*1.001, -1, 1 )   )* 180/math.pi
+    lha  =  math.atan2( np.clip( ( row[column_list[0]]*1.01), -1, 1 ), np.clip( ( row[column_list[1]]*1.01), -1, 1 )   )* 180/math.pi
+    lma  =  math.atan2( np.clip( ( row[column_list[2]]*1.01), -1, 1 ), np.clip( ( row[column_list[3]]*1.01), -1, 1 )   )* 180/math.pi
 
-    lms =  math.asin( np.clip( ( row[column_list[2]])*1.001, -1, 1 ) ) * 180/math.pi
-    lmc =  math.acos( np.clip( ( row[column_list[3]])*1.001, -1, 1 ) ) * 180/math.pi
-    lma  =  math.atan2( np.clip( ( row[column_list[2]])*1.001, -1, 1 ), np.clip( ( row[column_list[3]])*1.001, -1, 1 )   )* 180/math.pi
+    if lha < 0:
+        lha = lha + 360
 
-    chs =  math.asin( np.clip( ( row[column_list[4]])*1.001, -1, 1 ) ) * 180/math.pi
-    chc =  math.acos( np.clip( ( row[column_list[5]])*1.001, -1, 1 ) ) * 180/math.pi
-    cha  =  math.atan2( np.clip( ( row[column_list[4]])*1.001, -1, 1 ), np.clip( ( row[column_list[5]])*1.001, -1, 1 )   )* 180/math.pi
-
+    label_hours   = math.floor(lha/30)
+    label_minutes = math.floor( ( lha-label_hours*30)*2 )
 
     lh = lha/30
-    lh =  round(lh)
+    lh = round(lh)
     if lh < 0:
         lh = lh + 12
 
@@ -44,24 +41,15 @@ def load_and_process( filename, input_shape, row, model,  column_list ):
     if lm < 0:
         lm= lm + 60
 
-    lch = cha
-    lch = lch/30
-    lch =  round(lch)
-    if lch < 0:
-        lch= lch + 12
+    ha  =  math.atan2( np.clip( ( results[0]*1.01), -1, 1 ), np.clip( ( results[1]*1.01), -1, 1 )  )* 180/math.pi
+    ma  =  math.atan2( np.clip( ( results[2]*1.01), -1, 1 ), np.clip( ( results[3]*1.01), -1, 1 )  )* 180/math.pi
 
-    rhs =  math.asin( np.clip( ( results[0])*1.001, -1, 1 ) ) * 180/math.pi
-    rhc =  math.acos( np.clip( ( results[1])*1.001, -1, 1 ) ) * 180/math.pi
-    ha  =  math.atan2( np.clip( ( results[0])*1.001, -1, 1 ), np.clip( ( results[1])*1.001, -1, 1 )  )* 180/math.pi
 
-    rms =  math.asin( np.clip( ( results[2])*1.001, -1, 1 ) ) * 180/math.pi
-    rmc =  math.acos( np.clip( ( results[3])*1.001, -1, 1 ) ) * 180/math.pi
-    ma  =  math.atan2( np.clip( ( results[2])*1.001, -1, 1 ), np.clip( ( results[3])*1.001, -1, 1 )  )* 180/math.pi
+    if ha < 0:
+        ha = ha + 360
 
-    hs =  math.asin( np.clip( ( results[4])*1.001, -1, 1 ) ) * 180/math.pi
-    hc =  math.acos( np.clip( ( results[5])*1.001, -1, 1 ) ) * 180/math.pi
-    cha =  math.atan2( np.clip( ( results[4])*1.001, -1, 1 ), np.clip( ( results[5])*1.001, -1, 1 )  )* 180/math.pi
-
+    pred_hours   = math.floor(ha/30)
+    pred_minutes = math.floor( ( ha-pred_hours*30)*2 )
 
     if ma < 0:
         ma = ma +360
@@ -75,41 +63,18 @@ def load_and_process( filename, input_shape, row, model,  column_list ):
         pm = pm + 60
     pm = pm%60
 
-    # Edge case
-    ph   = ha # - ma/360
-    phm  = round( ph)/6
-    phmv = phm
+    pred_minutes_approx = math.floor(ma/6)
 
-    if pm > 54:
-        if math.floor(phmv)%5 > 4 and  phm <2:
-            pm = 0
-        elif math.floor(phmv)%5<2:
-            pm=0
-    elif pm < 6:
-        if phmv > 3:
-            phmv = phmv + 3
-    elif pm > 30:
-        phmv = phmv - 1
+    if ( pred_minutes_approx > 56 ) and ( pred_minutes > 56):
+        pred_minutes = pred_minutes_approx
+    elif ( pred_minutes_approx < 4) and ( pred_minutes < 4 ):
+        pred_minutes = pred_minutes_approx
+    elif ( pred_minutes_approx > 3 and pred_minutes_approx < 57) and ( pred_minutes > 3 and pred_minutes < 57):
+        pred_minutes = pred_minutes_approx
+    elif ( pred_minutes > 0 and pred_minutes <  30 ) and pred_minutes_approx > 50:
+        pred_minutes = pred_minutes_approx
 
-    ph = math.floor(phmv/5)
-
-    if ph < 0:
-        ph = ph + 12
-
-    diff =  abs( (lch*60 + lm) - (ph*60+pm))%180
-    if (lch*60 + lm) != (ph*60+pm):
-        if diff > 10:
-            print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " Diff ", diff )
-            print(  phmv, ",", phm, ha/6, ma/6  )
-            pass
-        else:
-            print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " Diff ", diff )
-    elif  abs(pm - lm)>1:
-        print( "Label:- ",  lch, ":", lm,  " -- NG ",  int(ph), ":", int(pm), " Diff ", (lch-int(ph)), ":", (lm-(int(pm) ) ) )  #  , "     ", int(pch), ":", int(pm) , " <------")
-
-    else:
-        #print( "Label:- ",  lch, ":",  lm  ) #  , "     ", int(pch), ":", int(pm) , " <------")
-        pass
+    print( label_hours, ":", label_minutes, " - ", pred_hours, ":", pred_minutes, "  ", pred_minutes_approx )
 
 
 def model_test( csv, model_file ):
