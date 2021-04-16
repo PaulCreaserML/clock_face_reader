@@ -143,11 +143,11 @@ def main( argv ):
     try:
         opts, args = getopt.getopt(argv,"hc:m:k:",["csv", "model", "checkpoint" ])
     except getopt.GetoptError:
-        print('python clockReaderTrain.py -c <csv> -m <model> -k <checkpoint>')
+        print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print('python clockReaderTrain.py -c <csv> -m <model> -k <checkpoint>')
+            print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
             sys.exit()
         elif opt in ("-c", "--csv"):
             csv = arg
@@ -157,7 +157,7 @@ def main( argv ):
             checkpoint_dir = arg
 
     if csv is None or model_file is None or checkpoint_dir is None:
-        print('python clockReaderTrain.py -c <csv> -m <model> -k <checkpoint>')
+        print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
         exit(2)
 
     print(" Csv file ", csv, " Model ", model_file  )
@@ -166,6 +166,6 @@ def main( argv ):
 
 if __name__ == "__main__":
     if len(sys.argv) != 7:
-        print('python clockReaderTrain.py -c <csv> -m <model> -k <checkpoint>')
+        print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
         sys.exit(2)
     main(sys.argv[1:])
