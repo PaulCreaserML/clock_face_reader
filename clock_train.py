@@ -92,8 +92,8 @@ def clock_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
         brightness_range=[0.8,1.2],
         zoom_range=[0.95, 1.05],
         # shear_range=0.01,
-        height_shift_range=[-5, 5],
-        width_shift_range=[-5, 5]#,
+        height_shift_range=[-2, 2],
+        width_shift_range=[-2, 2]#,
         )
 
     test_datagen = ImageDataGenerator(rescale = 1. / 255
@@ -171,7 +171,9 @@ def main( argv ):
         print('python clock_train.py -c <csv> -t <test_csv> -m <model> -k <checkpoint>')
         exit(2)
 
+    print(" --------------------------------------------------------------" )
     print(" Csv file ", csv, " Test CSV ", test_csv, " Model ", model_file  )
+    print(" --------------------------------------------------------------" )
     clock_train( csv, test_csv, epochs=120, batch_size=16, saved_model=model_file, checkpoint_dir=checkpoint_dir )
 
 

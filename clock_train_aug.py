@@ -73,17 +73,28 @@ def clockface_add(image):
     return image
 
 
-def clock_train( csv, epochs=200, batch_size=2, saved_model=None, checkpoint_dir=None ):
+def clock_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, checkpoint_dir=None ):
     df=pd.read_csv(csv, sep=',')
-    print( df.head())
+    test_df=pd.read_csv(test_csv, sep=',')
+
+    print("Train ",  df.head())
+    print("Test  ",  test_df.head())
+
     nb_train_samples      = len(df.index)
-    nb_validation_samples = len(df.index)
+    nb_validation_samples = len(test_df.index)
 
     column_list = []
     index = 0
     for col in df.columns:
         if index != 0:
             column_list.append( col)
+        index+=1
+
+    test_column_list = []
+    index = 0
+    for col in test_df.columns:
+        if index != 0:
+            test_column_list.append( col)
         index+=1
 
     clockface = set_clockFace( diameter )
@@ -123,7 +134,7 @@ def clock_train( csv, epochs=200, batch_size=2, saved_model=None, checkpoint_dir
         dataframe=df,
         x_col="filename",
         color_mode='grayscale',
-        y_col= column_list,
+        y_col= test_column_list,
         target_size =( diameter, diameter ),
         batch_size =  batch_size,
         class_mode ='raw' )
@@ -155,32 +166,38 @@ def main( argv ):
     csv            = None # CSV File
     model_file     = None
     checkpoint_dir = None
+    test_csv       = None
+
     try:
-        opts, args = getopt.getopt(argv,"hc:m:k:",["csv", "model", "checkpoint" ])
+        opts, args = getopt.getopt(argv,"hc:m:k:t:",["csv", "model", "checkpoint", "test_csv" ])
     except getopt.GetoptError:
-        print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
+        print('python clock_train.py -c <csv> -t <test_csv> -m <model> -k <checkpoint>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
+            print('python clock_train.py -c <csv> -t <test_csv> -m <model> -k <checkpoint>')
             sys.exit()
         elif opt in ("-c", "--csv"):
             csv = arg
         elif opt in ("-m", "--model"):
             model_file = arg
+        elif opt in ("-t", "--test_csv"):
+            test_csv = arg
         elif opt in ("-k", "--checkpoint"):
             checkpoint_dir = arg
 
     if csv is None or model_file is None or checkpoint_dir is None:
-        print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
+        print('python clock_train.py -c <csv> -t <test_csv> -m <model> -k <checkpoint>')
         exit(2)
 
-    print(" Csv file ", csv, " Model ", model_file  )
-    clock_train( csv, epochs=120, batch_size=16, saved_model=model_file, checkpoint_dir=checkpoint_dir )
+    print(" -------------------------------------------------------------")
+    print(" Csv file ", csv, " Test csv ", test_csv, " Model ", model_file )
+    print(" -------------------------------------------------------------")
+    clock_train( csv, test_csv,  epochs=120, batch_size=16, saved_model=model_file, checkpoint_dir=checkpoint_dir )
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 7:
-        print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
+    if len(sys.argv) != 9:
+        print('python clock_train.py -c <csv> -t <test_csv> -m <model> -k <checkpoint>')
         sys.exit(2)
     main(sys.argv[1:])
