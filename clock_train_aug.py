@@ -58,7 +58,9 @@ def model_build( img_height, img_width, depth=1 ):
     return  Model( [ input_img ], outputs = output )
 
 def set_clockFace( diameter ):
-    image = tensorflow.keras.preprocessing.image.load_img("clockface1.png", color_mode= "grayscale")
+    clockfaces = [ "clockface1.png", "clockface2.png", "clockface3.png", "clockface4.png" ]
+    index = random.randint(0, 3)
+    image = tensorflow.keras.preprocessing.image.load_img( clockfaces[index], color_mode= "grayscale")
     # print( image)
     image = tensorflow.keras.preprocessing.image.img_to_array(image)
     image = tensorflow.cast( image, dtype=tensorflow.uint8 )
@@ -97,8 +99,8 @@ def clock_train( csv, epochs=200, batch_size=2, saved_model=None, checkpoint_dir
         brightness_range=[0.8,1.2],
         zoom_range=[0.95, 1.05],
         # shear_range=0.01,
-        height_shift_range=[-5, 5],
-        width_shift_range=[-5, 5],
+        height_shift_range = [-4, 4],
+        width_shift_range  = [-4, 4],
         preprocessing_function=clockface_add
         )
 
