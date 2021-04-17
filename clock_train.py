@@ -104,7 +104,7 @@ def clock_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
         dataframe=df,
         x_col="filename",
         color_mode='grayscale',
-        y_col= test_column_list,
+        y_col= column_list,
         target_size =( img_height, img_width ),
         batch_size = batch_size,
         shuffle = True,
@@ -112,10 +112,10 @@ def clock_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
 
     # Validation dataset
     validation_generator = test_datagen.flow_from_dataframe(
-        dataframe=df,
+        dataframe=test_df,
         x_col="filename",
         color_mode='grayscale',
-        y_col= column_list,
+        y_col= test_column_list,
         target_size =( img_height, img_width ),
         batch_size =  batch_size,
         class_mode ='raw' )

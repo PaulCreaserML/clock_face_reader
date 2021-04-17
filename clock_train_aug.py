@@ -131,7 +131,7 @@ def clock_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
 
     # Validation dataset
     validation_generator = test_datagen.flow_from_dataframe(
-        dataframe=df,
+        dataframe=test_df,
         x_col="filename",
         color_mode='grayscale',
         y_col= test_column_list,
