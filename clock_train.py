@@ -21,21 +21,18 @@ def model_build( img_height, img_width, depth=3 ):
     input_shape  = ( img_height, img_width, depth )
     input_img    = Input( shape=input_shape )
 
-    feature_1    = Conv2D(64, (3, 3), strides=(2, 2),  use_bias=False, activation='relu')( input_img )
+    feature_1    = Conv2D(64, (5, 5), strides=(2, 2),  use_bias=False, activation='relu')( input_img )
     feature_1_scaled = MaxPooling2D( (2, 2) )( feature_1  )
-    feature_1_norm = BatchNormalization()(feature_1_scaled)
 
-    feature_2    = Conv2D(96, (3, 3), use_bias=False, activation='relu')( feature_1_norm )
+    feature_2    = Conv2D(96, (3, 3), use_bias=False, activation='relu')( feature_1_scaled)
     feature_2_scaled = MaxPooling2D( (2, 2) )( feature_2 )
-    feature_2_norm = BatchNormalization()(feature_2_scaled)
 
-    feature_3x3    = Conv2D(96, (3, 3), use_bias=False, activation='relu', padding='same')( feature_2_norm )
-    feature_5x5    = Conv2D(12, (5, 5), use_bias=False, activation='relu', padding='same')( feature_2_norm )
+    feature_3x3    = Conv2D(96, (3, 3), use_bias=False, activation='relu', padding='same')( feature_2_scaled )
+    feature_5x5    = Conv2D(12, (5, 5), use_bias=False, activation='relu', padding='same')( feature_2_scaled )
     skip1          = concatenate( [ feature_3x3, feature_5x5 ])
     skip1_scaled   = MaxPooling2D( (2, 2) )( skip1 )
-    skip1_norm     = BatchNormalization()(skip1_scaled)
 
-    feature1_3x3   = Conv2D(72, (3, 3), use_bias=False, activation='relu', padding='same')( skip1_norm )
+    feature1_3x3   = Conv2D(72, (3, 3), use_bias=False, activation='relu', padding='same')( skip1_scaled )
     #feature1_5x5   = Conv2D(64, (5,5), use_bias=False, activation='relu', padding='same')( skip1_scaled )
     skip2_scaled   = MaxPooling2D( (2, 2) )( feature1_3x3 )
 
@@ -60,17 +57,27 @@ def model_build( img_height, img_width, depth=3 ):
 
     return  Model( [ input_img ], outputs = output )
 
-def clock_train( csv, epochs=200, batch_size=2, saved_model=None, checkpoint_dir=None ):
-    df=pd.read_csv(csv, sep=',')
-    print( df.head())
+def clock_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, checkpoint_dir=None ):
+    df      = pd.read_csv(csv, sep=',')
+    test_df = pd.read_csv(test_csv, sep=',')
+
     nb_train_samples      = len(df.index)
     nb_validation_samples = len(df.index)
 
+    # Train Data
     column_list = []
     index = 0
     for col in df.columns:
         if index != 0:
-            column_list.append( col)
+            column_list.append( col )
+        index+=1
+
+    # Test Data
+    test_column_list = []
+    index = 0
+    for col in test_df.columns:
+        if index != 0:
+            test_column_list.append( col )
         index+=1
 
     model =  model_build( img_height, img_width, depth=1 )
@@ -97,7 +104,7 @@ def clock_train( csv, epochs=200, batch_size=2, saved_model=None, checkpoint_dir
         dataframe=df,
         x_col="filename",
         color_mode='grayscale',
-        y_col= column_list,
+        y_col= test_column_list,
         target_size =( img_height, img_width ),
         batch_size = batch_size,
         shuffle = True,
@@ -140,14 +147,16 @@ def main( argv ):
     csv            = None # CSV File
     model_file     = None
     checkpoint_dir = None
+    test_csv       = None
+
     try:
-        opts, args = getopt.getopt(argv,"hc:m:k:",["csv", "model", "checkpoint" ])
+        opts, args = getopt.getopt(argv,"hc:m:k:t:",["csv", "model", "checkpoint", "test_csv" ])
     except getopt.GetoptError:
-        print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
+        print('python clock_train.py -c <csv> -t <test_csv> -m <model> -k <checkpoint>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
+            print('python clock_train.py -c <csv> -t <test_csv> -m <model> -k <checkpoint>')
             sys.exit()
         elif opt in ("-c", "--csv"):
             csv = arg
@@ -155,17 +164,19 @@ def main( argv ):
             model_file = arg
         elif opt in ("-k", "--checkpoint"):
             checkpoint_dir = arg
+        elif opt in ("-t", "--test_csv"):
+            test_csv = arg
 
     if csv is None or model_file is None or checkpoint_dir is None:
-        print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
+        print('python clock_train.py -c <csv> -t <test_csv> -m <model> -k <checkpoint>')
         exit(2)
 
-    print(" Csv file ", csv, " Model ", model_file  )
-    clock_train( csv, epochs=120, batch_size=16, saved_model=model_file, checkpoint_dir=checkpoint_dir )
+    print(" Csv file ", csv, " Test CSV ", test_csv, " Model ", model_file  )
+    clock_train( csv, test_csv, epochs=120, batch_size=16, saved_model=model_file, checkpoint_dir=checkpoint_dir )
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 7:
-        print('python clock_train.py -c <csv> -m <model> -k <checkpoint>')
+    if len(sys.argv) != 9:
+        print('python clock_train.py -c <csv> -t <test_csv> -m <model> -k <checkpoint>')
         sys.exit(2)
     main(sys.argv[1:])
